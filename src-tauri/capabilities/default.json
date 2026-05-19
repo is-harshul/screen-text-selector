@@ -17,6 +17,9 @@
     "clipboard-manager:allow-write-text",
     "clipboard-manager:allow-read-text",
     "notification:default",
-    "notification:allow-notify"
+    "notification:allow-notify",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled"
   ]
 }

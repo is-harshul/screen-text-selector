@@ -7,6 +7,8 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, State,
 };
+use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_autostart::ManagerExt as AutostartManagerExt;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_global_shortcut::{
     Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState,
@@ -167,6 +169,7 @@ pub fn run() {
         .manage(AppState {
             capture: Mutex::new(None),
         })
+        .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, None))
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(
@@ -209,9 +212,22 @@ pub fn run() {
                 true,
                 None::<&str>,
             )?;
+            let autostart_enabled = app.autolaunch().is_enabled().unwrap_or(false);
+            let autostart_label = if autostart_enabled {
+                "✓ Launch at Login"
+            } else {
+                "  Launch at Login"
+            };
+            let autostart_item = MenuItem::with_id(
+                app,
+                "autostart",
+                autostart_label,
+                true,
+                None::<&str>,
+            )?;
             let separator = PredefinedMenuItem::separator(app)?;
             let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&capture_item, &separator, &quit_item])?;
+            let menu = Menu::with_items(app, &[&capture_item, &separator, &autostart_item, &quit_item])?;
 
             let _tray = TrayIconBuilder::with_id("main-tray")
                 .icon(app.default_window_icon().unwrap().clone())
@@ -221,6 +237,15 @@ pub fn run() {
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "capture" => trigger_capture(app),
+                    "autostart" => {
+                        let al = app.autolaunch();
+                        let enabled = al.is_enabled().unwrap_or(false);
+                        if enabled {
+                            let _ = al.disable();
+                        } else {
+                            let _ = al.enable();
+                        }
+                    }
                     "quit" => app.exit(0),
                     _ => {}
                 })
@@ -236,6 +261,12 @@ pub fn run() {
                     }
                 })
                 .build(app)?;
+
+            // --- Autostart: enable by default on first run -----------------------
+            let autostart = app.autolaunch();
+            if !autostart.is_enabled().unwrap_or(false) {
+                let _ = autostart.enable();
+            }
 
             // --- Make sure overlay starts hidden ---------------------------------
             if let Some(overlay) = app.get_webview_window("overlay") {
