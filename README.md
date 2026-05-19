@@ -8,11 +8,7 @@ Press the global hotkey, drag a rectangle, and the recognised text lands on your
 
 ### Demo
 
-https://github.com/is-harshul/text-extractor/raw/main/demo.mp4
-
-<video src="demo.mp4" controls width="720">
-  Your browser does not support inline video — <a href="demo.mp4">download demo.mp4</a>.
-</video>
+https://github.com/user-attachments/assets/8a52013b-8141-4103-b866-d448baca3db9
 
 ---
 
