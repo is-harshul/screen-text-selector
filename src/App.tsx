@@ -11,6 +11,9 @@ export default function App() {
   const [scaleX, setScaleX] = useState(1);
   const [scaleY, setScaleY] = useState(1);
   const startRef = useRef<{ x: number; y: number } | null>(null);
+  const [copyFormat, setCopyFormat] = useState<"plain" | "markdown" | "html">(
+    () => (localStorage.getItem("copy-format") as "plain" | "markdown" | "html") || "plain"
+  );
 
   const closeOverlay = useCallback(async () => {
     setRect(null);
@@ -82,6 +85,7 @@ export default function App() {
         y: Math.round(rect.y * scaleY),
         w: Math.round(rect.w * scaleX),
         h: Math.round(rect.h * scaleY),
+        format: copyFormat,
       });
     } catch (e) {
       console.error("OCR failed:", e);
@@ -141,6 +145,23 @@ export default function App() {
             <span className="dim-badge">{dims}</span>
           </div>
         </>
+      )}
+
+      {status !== "processing" && (
+        <div className="format-pill" onMouseDown={(e) => e.stopPropagation()}>
+          {(["plain", "markdown", "html"] as const).map((f) => (
+            <button
+              key={f}
+              className={`format-btn${copyFormat === f ? " active" : ""}`}
+              onClick={() => {
+                setCopyFormat(f);
+                localStorage.setItem("copy-format", f);
+              }}
+            >
+              {f === "plain" ? "Plain" : f === "markdown" ? "Markdown" : "HTML"}
+            </button>
+          ))}
+        </div>
       )}
 
       <div className="hint">

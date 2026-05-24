@@ -1,4 +1,5 @@
 mod capture;
+mod format;
 mod ocr;
 
 use std::sync::Mutex;
@@ -51,6 +52,7 @@ async fn process_selection(
     y: u32,
     w: u32,
     h: u32,
+    format: String,
 ) -> Result<String, String> {
     // Pull the capture out of state on the main thread, then hand it
     // to a blocking task for OCR (CPU-heavy).
@@ -89,9 +91,25 @@ async fn process_selection(
             .body("No text detected in selection")
             .show();
     } else {
-        app.clipboard()
-            .write_text(text.clone())
-            .map_err(|e| format!("clipboard: {e}"))?;
+        match format.as_str() {
+            "markdown" => {
+                let md = crate::format::to_markdown(&text);
+                app.clipboard()
+                    .write_text(md)
+                    .map_err(|e| format!("clipboard: {e}"))?;
+            }
+            "html" => {
+                let html = crate::format::to_html(&text);
+                app.clipboard()
+                    .write_html(html, Some(text.clone()))
+                    .map_err(|e| format!("clipboard: {e}"))?;
+            }
+            _ => {
+                app.clipboard()
+                    .write_text(text.clone())
+                    .map_err(|e| format!("clipboard: {e}"))?;
+            }
+        }
         let preview: String = text.chars().take(80).collect();
         let body = if text.chars().count() > 80 {
             format!("{preview}…")
@@ -107,6 +125,24 @@ async fn process_selection(
     }
 
     Ok(text)
+}
+
+// Check if the app has Screen Recording permission (macOS only).
+#[cfg(target_os = "macos")]
+#[link(name = "CoreGraphics", kind = "framework")]
+extern "C" {
+    fn CGPreflightScreenCaptureAccess() -> bool;
+}
+
+fn has_screen_recording_permission() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        unsafe { CGPreflightScreenCaptureAccess() }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        true
+    }
 }
 
 /// Trigger a screen capture and reveal the overlay window.
@@ -225,9 +261,17 @@ pub fn run() {
                 true,
                 None::<&str>,
             )?;
+            let perm_granted = has_screen_recording_permission();
+            let perm_label = if perm_granted {
+                "✓ Screen Recording"
+            } else {
+                "⚠ Screen Recording — Click to enable"
+            };
+            let perm_item = MenuItem::with_id(app, "screen_perm", perm_label, true, None::<&str>)?;
             let separator = PredefinedMenuItem::separator(app)?;
+            let separator2 = PredefinedMenuItem::separator(app)?;
             let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&capture_item, &separator, &autostart_item, &quit_item])?;
+            let menu = Menu::with_items(app, &[&capture_item, &separator, &perm_item, &autostart_item, &separator2, &quit_item])?;
 
             let _tray = TrayIconBuilder::with_id("main-tray")
                 .icon(app.default_window_icon().unwrap().clone())
@@ -237,6 +281,13 @@ pub fn run() {
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "capture" => trigger_capture(app),
+                    "screen_perm" => {
+                        if !has_screen_recording_permission() {
+                            let _ = std::process::Command::new("open")
+                                .arg("x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")
+                                .spawn();
+                        }
+                    }
                     "autostart" => {
                         let al = app.autolaunch();
                         let enabled = al.is_enabled().unwrap_or(false);
