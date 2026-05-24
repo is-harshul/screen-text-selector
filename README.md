@@ -41,16 +41,16 @@ https://github.com/user-attachments/assets/8a52013b-8141-4103-b866-d448baca3db9
 
 ### Download
 
-Latest installers: [**Releases page**](https://github.com/is-harshul/text-extractor/releases/latest) · current **v0.1.2**.
+Latest installers: [**Releases page**](https://github.com/is-harshul/text-extractor/releases/latest) · current **v0.2.0**.
 
 | OS | Installer | Direct download |
 | --- | --- | --- |
-| macOS (Apple silicon — M1/M2/M3) | `Text Extractor_0.1.0_aarch64.dmg` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.1.0_aarch64.dmg) |
-| macOS (Intel) | `Text Extractor_0.1.0_x64.dmg` | _coming in next release — CI runner backlog_ |
-| Windows (installer) | `Text Extractor_0.1.0_x64-setup.exe` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.1.0_x64-setup.exe) |
-| Windows (MSI) | `Text Extractor_0.1.0_x64_en-US.msi` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.1.0_x64_en-US.msi) |
-| Linux (.deb) | `Text Extractor_0.1.0_amd64.deb` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.1.0_amd64.deb) |
-| Linux (.AppImage) | `Text Extractor_0.1.0_amd64.AppImage` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.1.0_amd64.AppImage) |
+| macOS (Apple silicon — M1/M2/M3) | `Text Extractor_0.2.0_aarch64.dmg` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.2.0_aarch64.dmg) |
+| macOS (Intel) | `Text Extractor_0.2.0_x64.dmg` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.2.0_x64.dmg) |
+| Windows (installer) | `Text Extractor_0.2.0_x64-setup.exe` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.2.0_x64-setup.exe) |
+| Windows (MSI) | `Text Extractor_0.2.0_x64_en-US.msi` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.2.0_x64_en-US.msi) |
+| Linux (.deb) | `Text Extractor_0.2.0_amd64.deb` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.2.0_amd64.deb) |
+| Linux (.AppImage) | `Text Extractor_0.2.0_amd64.AppImage` | [⬇ download](https://github.com/is-harshul/text-extractor/releases/latest/download/Text.Extractor_0.2.0_amd64.AppImage) |
 
 > Direct-download links hit GitHub's `/releases/latest/download/<filename>` redirect — auto-tracks the newest release. GitHub stores asset filenames with `.` in place of spaces, so the URL has `Text.Extractor_...` while the file you save is named `Text Extractor_...`.
 >
@@ -145,11 +145,11 @@ On Linux the script auto-builds `.deb` + `.AppImage`. On Windows it auto-builds 
 
 ```
 release/
-└── Text Extractor_0.1.0_universal.dmg     # macOS
-    Text Extractor_0.1.0_amd64.deb         # Linux
-    text-extractor_0.1.0_amd64.AppImage    # Linux
-    Text Extractor_0.1.0_x64_en-US.msi     # Windows
-    Text Extractor_0.1.0_x64-setup.exe     # Windows
+└── Text Extractor_0.2.0_universal.dmg     # macOS
+    Text Extractor_0.2.0_amd64.deb         # Linux
+    text-extractor_0.2.0_amd64.AppImage    # Linux
+    Text Extractor_0.2.0_x64_en-US.msi     # Windows
+    Text Extractor_0.2.0_x64-setup.exe     # Windows
 ```
 
 Send the file → friend installs → done.
