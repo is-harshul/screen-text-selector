@@ -297,4 +297,4 @@ text-extractor/
 
 ## License
 
-TBD — add a `LICENSE` file before public distribution.
+MIT — see [LICENSE](LICENSE).
