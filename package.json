@@ -12,7 +12,8 @@
     "dist:host": "bash scripts/build-installer.sh host",
     "dist:arm64": "bash scripts/build-installer.sh arm64",
     "dist:x86_64": "bash scripts/build-installer.sh x86_64",
-    "dist:publish": "PUBLISH=1 bash scripts/build-installer.sh"
+    "dist:publish": "PUBLISH=1 bash scripts/build-installer.sh",
+    "deploy": "node scripts/deploy.js"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.1.1",
