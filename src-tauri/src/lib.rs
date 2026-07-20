@@ -149,9 +149,21 @@ fn has_screen_recording_permission() -> bool {
 /// Called from both the global hotkey handler and the tray menu.
 fn trigger_capture(app: &AppHandle) {
     let app = app.clone();
+
+    // Grab the cursor position now so we capture the monitor the user is
+    // actually looking at. `None` -> fall back to the primary monitor.
+    let cursor = app
+        .cursor_position()
+        .ok()
+        .map(|p| (p.x as i32, p.y as i32));
+
     tauri::async_runtime::spawn(async move {
         // xcap is blocking — run it on a blocking thread
-        let cap_result = tokio::task::spawn_blocking(capture::capture_primary_monitor).await;
+        let cap_result = tokio::task::spawn_blocking(move || match cursor {
+            Some((x, y)) => capture::capture_monitor_at(x, y),
+            None => capture::capture_primary_monitor(),
+        })
+        .await;
 
         let cap = match cap_result {
             Ok(Ok(c)) => c,
@@ -183,7 +195,17 @@ fn trigger_capture(app: &AppHandle) {
         // fullscreen (which animates into a new Space). Sizing to monitor
         // bounds + simple_fullscreen keeps the overlay in the current Space.
         if let Some(overlay) = app.get_webview_window("overlay") {
-            if let Ok(Some(monitor)) = overlay.primary_monitor() {
+            // Position on the monitor under the cursor (same one we captured),
+            // falling back to primary if the cursor position was unavailable.
+            let target_monitor = match cursor {
+                Some((x, y)) => overlay
+                    .monitor_from_point(x as f64, y as f64)
+                    .ok()
+                    .flatten()
+                    .or_else(|| overlay.primary_monitor().ok().flatten()),
+                None => overlay.primary_monitor().ok().flatten(),
+            };
+            if let Some(monitor) = target_monitor {
                 let pos = monitor.position();
                 let size = monitor.size();
                 let _ = overlay.set_position(tauri::PhysicalPosition::new(pos.x, pos.y));

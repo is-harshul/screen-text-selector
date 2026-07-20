@@ -8,10 +8,26 @@ pub struct Capture {
     pub height: u32,
 }
 
+/// Capture the monitor containing the point `(x, y)` (physical pixels).
+///
+/// On multi-monitor setups we capture the display under the cursor so the
+/// overlay appears where the user is actually looking. Falls back to the
+/// primary monitor (then the first enumerated) if no monitor contains the point.
+pub fn capture_monitor_at(x: i32, y: i32) -> Result<Capture, String> {
+    let monitors = Monitor::all().map_err(|e| format!("enumerate monitors: {e}"))?;
+
+    let monitor = Monitor::from_point(x, y)
+        .ok()
+        .or_else(|| monitors.iter().find(|m| m.is_primary().unwrap_or(false)).cloned())
+        .or_else(|| monitors.first().cloned())
+        .ok_or_else(|| "no monitors detected".to_string())?;
+
+    capture_monitor(&monitor)
+}
+
 /// Capture the primary monitor as a `DynamicImage`.
 ///
-/// We pick the primary monitor so behavior is predictable on multi-monitor setups.
-/// (Multi-monitor capture-on-cursor is a v2 feature.)
+/// Fallback used when the cursor position is unavailable.
 pub fn capture_primary_monitor() -> Result<Capture, String> {
     let monitors = Monitor::all().map_err(|e| format!("enumerate monitors: {e}"))?;
 
@@ -19,8 +35,14 @@ pub fn capture_primary_monitor() -> Result<Capture, String> {
         .iter()
         .find(|m| m.is_primary().unwrap_or(false))
         .or_else(|| monitors.first())
-        .ok_or_else(|| "no monitors detected".to_string())?;
+        .ok_or_else(|| "no monitors detected".to_string())?
+        .clone();
 
+    capture_monitor(&monitor)
+}
+
+/// Capture a single monitor into memory.
+fn capture_monitor(monitor: &Monitor) -> Result<Capture, String> {
     let buffer: RgbaImage = monitor
         .capture_image()
         .map_err(|e| format!("capture: {e}"))?;
