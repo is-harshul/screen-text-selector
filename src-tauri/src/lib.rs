@@ -22,6 +22,38 @@ struct AppState {
     capture: Mutex<Option<capture::Capture>>,
 }
 
+/// Make the overlay window able to appear over a native-fullscreen app.
+///
+/// When another app is in macOS native fullscreen it occupies its own Space.
+/// A normal window has a "home" Space, so showing it would switch Spaces away
+/// from the fullscreen app instead of drawing on top of it. Setting
+/// `canJoinAllSpaces` + `fullScreenAuxiliary` and raising the window level lets
+/// the overlay render on whichever Space is currently active — including a
+/// fullscreen app's Space.
+#[cfg(target_os = "macos")]
+fn configure_overlay_spaces(overlay: &tauri::WebviewWindow) {
+    use objc2::runtime::AnyObject;
+    use objc2_app_kit::{NSWindow, NSWindowCollectionBehavior};
+
+    let Ok(ptr) = overlay.ns_window() else { return };
+    if ptr.is_null() {
+        return;
+    }
+    // SAFETY: `ns_window()` returns the window's live `NSWindow` for the life of
+    // the window; we only touch it on the main thread (Tauri's event loop).
+    let ns_window: &NSWindow = unsafe { &*(ptr as *const AnyObject as *const NSWindow) };
+
+    let behavior = NSWindowCollectionBehavior::CanJoinAllSpaces
+        | NSWindowCollectionBehavior::FullScreenAuxiliary
+        | NSWindowCollectionBehavior::Stationary
+        | NSWindowCollectionBehavior::IgnoresCycle;
+    unsafe { ns_window.setCollectionBehavior(behavior) };
+
+    // Float above normal windows (and the fullscreen app's content) — pop-up
+    // menu level (101) sits above NSMainMenuWindowLevel without being intrusive.
+    unsafe { ns_window.setLevel(101) };
+}
+
 /// Hide the overlay window cleanly, exiting macOS simple-fullscreen first.
 #[tauri::command]
 fn close_overlay(app: AppHandle) -> Result<(), String> {
@@ -211,6 +243,10 @@ fn trigger_capture(app: &AppHandle) {
                 let _ = overlay.set_position(tauri::PhysicalPosition::new(pos.x, pos.y));
                 let _ = overlay.set_size(tauri::PhysicalSize::new(size.width, size.height));
             }
+            // Allow the overlay onto a fullscreen app's Space BEFORE showing,
+            // otherwise showing it would switch Spaces to the overlay's home.
+            #[cfg(target_os = "macos")]
+            configure_overlay_spaces(&overlay);
             #[cfg(target_os = "macos")]
             let _ = overlay.set_simple_fullscreen(true);
             let _ = overlay.show();

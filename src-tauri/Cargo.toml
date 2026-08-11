@@ -26,6 +26,11 @@ image = "0.25"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 log = "0.4"
 
+# macOS-only: raw NSWindow access so the overlay can join fullscreen Spaces.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", features = ["NSResponder", "NSWindow"] }
+
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
