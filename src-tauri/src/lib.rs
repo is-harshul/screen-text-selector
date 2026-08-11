@@ -328,8 +328,30 @@ pub fn run() {
             let perm_item = MenuItem::with_id(app, "screen_perm", perm_label, true, None::<&str>)?;
             let separator = PredefinedMenuItem::separator(app)?;
             let separator2 = PredefinedMenuItem::separator(app)?;
+            let separator3 = PredefinedMenuItem::separator(app)?;
+            // Version info — disabled (display-only). Pulls from tauri.conf.json
+            // so it tracks the deploy.js version bump automatically.
+            let version_item = MenuItem::with_id(
+                app,
+                "version",
+                format!("Text Extractor v{}", app.package_info().version),
+                false,
+                None::<&str>,
+            )?;
             let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&capture_item, &separator, &perm_item, &autostart_item, &separator2, &quit_item])?;
+            let menu = Menu::with_items(
+                app,
+                &[
+                    &capture_item,
+                    &separator,
+                    &perm_item,
+                    &autostart_item,
+                    &separator2,
+                    &version_item,
+                    &separator3,
+                    &quit_item,
+                ],
+            )?;
 
             let _tray = TrayIconBuilder::with_id("main-tray")
                 .icon(app.default_window_icon().unwrap().clone())
